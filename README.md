@@ -81,7 +81,7 @@ git clone https://github.com/fetzig/nvim-config.git "${XDG_CONFIG_HOME:-$HOME/.c
 If you're using `cmd.exe`:
 
 ```
-git clone https://github.com/nvim-lua/kickstart.nvim.git "%localappdata%\nvim"
+git clone https://github.com/fetzig/nvim-config.git "%localappdata%\nvim"
 ```
 
 If you're using `powershell.exe`
