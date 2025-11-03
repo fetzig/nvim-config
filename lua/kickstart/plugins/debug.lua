@@ -23,6 +23,7 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    'mfussenegger/nvim-dap-python',
   },
   keys = function(_, keys)
     local dap = require 'dap'
@@ -64,6 +65,7 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+        'debugpy',
       },
     }
 
@@ -101,5 +103,30 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+
+    -- Install Python specific config
+    local dap_python = require 'dap-python'
+    -- Use debugpy installed via Mason
+    dap_python.setup(vim.fn.stdpath 'data' .. '/mason/packages/debugpy/venv/bin/python')
+
+    -- Set pytest as the test runner
+    dap_python.test_runner = 'pytest'
+
+    -- Add custom configuration for attaching to FastAPI dev server
+    table.insert(dap.configurations.python, {
+      type = 'python',
+      request = 'attach',
+      name = 'Attach to FastAPI (just dev)',
+      connect = {
+        host = 'localhost',
+        port = 5678, -- Default debugpy port
+      },
+      pathMappings = {
+        {
+          localRoot = vim.fn.getcwd(),
+          remoteRoot = '.',
+        },
+      },
+    })
   end,
 }

@@ -181,22 +181,15 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
--- TODO move them inside the tmux nav plugin config
-vim.keymap.set('n', '<C-h>', '<cmd> TmuxNavigateLeft<CR>', { desc = 'window left' })
-vim.keymap.set('n', '<C-l>', '<cmd> TmuxNavigateRight<CR>', { desc = 'window right' })
-vim.keymap.set('n', '<C-j>', '<cmd> TmuxNavigateDown<CR>', { desc = 'window down' })
-vim.keymap.set('n', '<C-k>', '<cmd> TmuxNavigateUp<CR>', { desc = 'window up' })
+-- NOTE: Split navigation keybinds (Ctrl+h/j/k/l) are configured
+-- in the vim-tmux-navigator plugin config below to enable seamless
+-- navigation between tmux panes and vim windows (including terminal mode)
 
 vim.keymap.set('n', '<leader>e', '<cmd> NvimTreeToggle<CR>', { desc = 'Open or close the tree.' })
+
+-- Buffer management
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<cr>', { desc = '[B]uffer [D]elete' })
+vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<cr>', { desc = '[B]uffer [D]elete (force)' })
 
 -- TODO get that functionality back...maybe
 -- vim.keymap.set('n', '<leader>rd', '<cmd> PythonCopyReferenceDotted<CR>', { desc = 'python copy reference dotted' })
@@ -325,12 +318,17 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
+        { '<leader>a', group = '[A]I/Claude Code' },
+        { '<leader>b', group = '[B]uffer' },
         { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
+        { '<leader>t', group = '[T]est' },
+        { '<leader>T', group = '[T]erminal' },
+        { '<leader>j', group = '[J]ust (Tasks)' },
+        { '<leader>x', group = 'Diagnostics' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
@@ -477,6 +475,9 @@ require('lazy').setup({
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
+
+      -- JSON schemas
+      'b0o/schemastore.nvim',
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -643,6 +644,55 @@ require('lazy').setup({
             },
           },
         },
+
+        -- Python
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                typeCheckingMode = 'basic',
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = 'openFilesOnly',
+              },
+            },
+          },
+        },
+
+        -- Ruff LSP for Python linting (works alongside Pyright)
+        ruff = {
+          init_options = {
+            settings = {
+              -- Disable hover in favor of Pyright
+              hover = { enable = false },
+            },
+          },
+        },
+
+        -- Terraform
+        terraformls = {},
+
+        -- YAML
+        yamlls = {
+          settings = {
+            yaml = {
+              schemas = {
+                ['https://json.schemastore.org/github-workflow.json'] = '/.github/workflows/*',
+                ['https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json'] = '*docker-compose*.yml',
+              },
+            },
+          },
+        },
+
+        -- JSON
+        jsonls = {
+          settings = {
+            json = {
+              schemas = require('schemastore').json.schemas(),
+              validate = { enable = true },
+            },
+          },
+        },
       }
 
       -- Ensure the servers and tools above are installed
@@ -657,7 +707,15 @@ require('lazy').setup({
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        -- Formatters
+        'stylua', -- Lua
+        'prettier', -- YAML, JSON, etc.
+
+        -- Linters
+        'ruff', -- Python linting (also installed as LSP above)
+        'yamllint', -- YAML
+        'jsonlint', -- JSON
+        'tflint', -- Terraform
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -710,11 +768,11 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        python = { 'ruff_format', 'ruff_organize_imports' },
+        terraform = { 'terraform_fmt' },
+        tf = { 'terraform_fmt' },
+        yaml = { 'prettier' },
+        json = { 'prettier' },
       },
     },
   },
@@ -928,9 +986,9 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
@@ -940,10 +998,37 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   {
     'christoomey/vim-tmux-navigator',
     lazy = false,
+    init = function()
+      -- Disable default mappings - we define our own
+      vim.g.tmux_navigator_no_mappings = 1
+
+      -- Preserve default behavior when navigating away from vim
+      -- Use 1 to save current buffer only (skips terminal buffers)
+      -- Use 2 to save all buffers (causes E676 with terminals)
+      -- Use 0 to disable auto-save
+      vim.g.tmux_navigator_save_on_switch = 1
+
+      -- Enable seamless navigation between tmux panes and vim windows
+      vim.g.tmux_navigator_disable_when_zoomed = 1
+    end,
+    config = function()
+      -- Set up keymaps after plugin is loaded
+      -- Normal mode mappings
+      vim.keymap.set('n', '<C-h>', '<cmd>TmuxNavigateLeft<CR>', { desc = 'window left', silent = true })
+      vim.keymap.set('n', '<C-l>', '<cmd>TmuxNavigateRight<CR>', { desc = 'window right', silent = true })
+      vim.keymap.set('n', '<C-j>', '<cmd>TmuxNavigateDown<CR>', { desc = 'window down', silent = true })
+      vim.keymap.set('n', '<C-k>', '<cmd>TmuxNavigateUp<CR>', { desc = 'window up', silent = true })
+
+      -- Terminal mode mappings (critical for Claude Code terminal)
+      vim.keymap.set('t', '<C-h>', '<cmd>TmuxNavigateLeft<CR>', { desc = 'window left', silent = true })
+      vim.keymap.set('t', '<C-l>', '<cmd>TmuxNavigateRight<CR>', { desc = 'window right', silent = true })
+      vim.keymap.set('t', '<C-j>', '<cmd>TmuxNavigateDown<CR>', { desc = 'window down', silent = true })
+      vim.keymap.set('t', '<C-k>', '<cmd>TmuxNavigateUp<CR>', { desc = 'window up', silent = true })
+    end,
   },
   {
     'nvim-tree/nvim-tree.lua',
@@ -960,6 +1045,47 @@ require('lazy').setup({
     'numToStr/Comment.nvim',
     opts = {
       -- add any options here
+    },
+  },
+  -- snacks.nvim - Terminal management for Claude Code
+  {
+    'folke/snacks.nvim',
+    priority = 1000,
+    lazy = false,
+    opts = {
+      terminal = {},
+    },
+  },
+  -- Claude Code integration
+  {
+    'coder/claudecode.nvim',
+    dependencies = { 'folke/snacks.nvim' },
+    opts = {
+      -- Server Configuration
+      auto_start = true,
+      log_level = 'info',
+
+      -- Terminal Configuration
+      terminal = {
+        split_side = 'right',
+        split_width_percentage = 0.30,
+        provider = 'auto',
+        auto_close = true,
+      },
+
+      -- Selection Tracking
+      track_selection = true,
+      visual_demotion_delay_ms = 50,
+    },
+    keys = {
+      { '<leader>a', nil, desc = 'AI/Claude Code' },
+      { '<leader>ac', '<cmd>ClaudeCode<cr>', desc = 'Toggle Claude' },
+      { '<leader>af', '<cmd>ClaudeCodeFocus<cr>', desc = 'Focus Claude' },
+      { '<leader>ar', '<cmd>ClaudeCode --resume<cr>', desc = 'Resume Claude' },
+      { '<leader>aC', '<cmd>ClaudeCode --continue<cr>', desc = 'Continue Claude' },
+      { '<leader>aa', '<cmd>ClaudeCodeDiffAccept<cr>', desc = 'Accept diff' },
+      { '<leader>ad', '<cmd>ClaudeCodeDiffDeny<cr>', desc = 'Deny diff' },
+      { '<leader>as', '<cmd>ClaudeCodeSend<cr>', mode = 'v', desc = 'Send to Claude' },
     },
   },
 }, {
