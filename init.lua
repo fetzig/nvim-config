@@ -235,38 +235,24 @@ vim.api.nvim_create_autocmd({ 'InsertLeave', 'WinLeave', 'FocusLost', 'BufLeave'
 })
 
 -- Automatically enter terminal mode when entering terminal buffers
--- This keeps terminal buffers (like Claude Code) in terminal mode, preventing
--- them from switching to normal mode on mouse clicks or window focus changes
+-- This keeps terminal buffers (like Claude Code) in terminal mode
+-- Uses mouse mapping instead of ModeChanged to allow scrolling
 vim.api.nvim_create_autocmd({ 'TermOpen', 'BufEnter', 'WinEnter', 'BufWinEnter' }, {
   desc = 'Auto-enter terminal mode for terminal buffers',
   group = vim.api.nvim_create_augroup('auto-insert-terminal', { clear = true }),
   callback = function(args)
     -- Only apply to actual terminal buffers
     if vim.bo[args.buf].buftype == 'terminal' then
+      -- Enable scrollback for terminal buffers
+      vim.bo[args.buf].scrollback = 10000
+
+      -- Map left mouse button to return to terminal mode after click
+      -- This allows scrolling (doesn't use LeftRelease) while preventing clicks from leaving terminal mode
+      vim.keymap.set('n', '<LeftRelease>', '<LeftRelease>i', { buffer = args.buf, silent = true })
+
       -- Use vim.schedule to ensure this runs after all other event handlers
-      -- This fixes the issue where double-clicking switches to normal mode
       vim.schedule(function()
         vim.cmd('startinsert')
-      end)
-    end
-  end,
-})
-
--- Keep terminal mode when clicking on an already-focused terminal buffer
--- This catches mode changes from mouse clicks that don't trigger window entry events
-vim.api.nvim_create_autocmd('ModeChanged', {
-  desc = 'Re-enter terminal mode when exiting it in terminal buffers',
-  group = vim.api.nvim_create_augroup('keep-terminal-mode', { clear = true }),
-  pattern = 't:*', -- Trigger when leaving terminal mode
-  callback = function(args)
-    -- Only re-enter if we're still in a terminal buffer
-    if vim.bo[args.buf].buftype == 'terminal' then
-      -- Schedule to avoid issues with double-click visual selection
-      vim.schedule(function()
-        -- Check we're still in a terminal buffer and not in terminal mode already
-        if vim.bo.buftype == 'terminal' and vim.fn.mode() ~= 't' then
-          vim.cmd('startinsert')
-        end
       end)
     end
   end,
