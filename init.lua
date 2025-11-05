@@ -893,18 +893,35 @@ require('lazy').setup({
     end,
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+  { -- Catppuccin colorscheme
+    -- Catppuccin offers four flavors: latte (light), frappe, macchiato, and mocha (dark)
+    -- We use latte for light mode and mocha for dark mode to match tmux and ghostty
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000, -- Make sure to load this before all the other start plugins.
+    opts = {
+      flavour = 'auto', -- latte, frappe, macchiato, mocha, auto
+      background = {
+        light = 'latte',
+        dark = 'mocha',
+      },
+    },
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- Detect macOS system appearance and set initial theme
+      -- The auto-dark-mode plugin will take over after it loads
+      local handle = io.popen('defaults read -g AppleInterfaceStyle 2>/dev/null')
+      if handle then
+        local result = handle:read('*a')
+        handle:close()
+        if result:match('Dark') then
+          vim.cmd.colorscheme 'catppuccin-mocha'
+        else
+          vim.cmd.colorscheme 'catppuccin-latte'
+        end
+      else
+        -- Default to dark if can't detect
+        vim.cmd.colorscheme 'catppuccin-mocha'
+      end
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
