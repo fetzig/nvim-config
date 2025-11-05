@@ -208,6 +208,70 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Auto-save buffers when they lose focus
+vim.api.nvim_create_autocmd({ 'InsertLeave', 'WinLeave', 'FocusLost', 'BufLeave' }, {
+  desc = 'Auto-save buffer when losing focus, leaving buffer, or exiting insert mode',
+  group = vim.api.nvim_create_augroup('auto-save', { clear = true }),
+  callback = function()
+    -- Skip special buffer types
+    local buftype = vim.bo.buftype
+    local filetype = vim.bo.filetype
+    local skip_buftypes = { 'terminal', 'quickfix', 'nofile', 'help', 'prompt' }
+    local skip_filetypes = { 'NvimTree', 'neo-tree', 'TelescopePrompt', 'Trouble', 'lazy', 'mason' }
+
+    -- Check if we should skip this buffer
+    for _, bt in ipairs(skip_buftypes) do
+      if buftype == bt then return end
+    end
+    for _, ft in ipairs(skip_filetypes) do
+      if filetype == ft then return end
+    end
+
+    -- Save if buffer is modifiable, modified, and has a filename
+    if vim.bo.modifiable and vim.bo.modified and vim.fn.expand('%') ~= '' then
+      vim.cmd('silent! write')
+    end
+  end,
+})
+
+-- Automatically enter terminal mode when entering terminal buffers
+-- This keeps terminal buffers (like Claude Code) in terminal mode, preventing
+-- them from switching to normal mode on mouse clicks or window focus changes
+vim.api.nvim_create_autocmd({ 'TermOpen', 'BufEnter', 'WinEnter', 'BufWinEnter' }, {
+  desc = 'Auto-enter terminal mode for terminal buffers',
+  group = vim.api.nvim_create_augroup('auto-insert-terminal', { clear = true }),
+  callback = function(args)
+    -- Only apply to actual terminal buffers
+    if vim.bo[args.buf].buftype == 'terminal' then
+      -- Use vim.schedule to ensure this runs after all other event handlers
+      -- This fixes the issue where double-clicking switches to normal mode
+      vim.schedule(function()
+        vim.cmd('startinsert')
+      end)
+    end
+  end,
+})
+
+-- Keep terminal mode when clicking on an already-focused terminal buffer
+-- This catches mode changes from mouse clicks that don't trigger window entry events
+vim.api.nvim_create_autocmd('ModeChanged', {
+  desc = 'Re-enter terminal mode when exiting it in terminal buffers',
+  group = vim.api.nvim_create_augroup('keep-terminal-mode', { clear = true }),
+  pattern = 't:*', -- Trigger when leaving terminal mode
+  callback = function(args)
+    -- Only re-enter if we're still in a terminal buffer
+    if vim.bo[args.buf].buftype == 'terminal' then
+      -- Schedule to avoid issues with double-click visual selection
+      vim.schedule(function()
+        -- Check we're still in a terminal buffer and not in terminal mode already
+        if vim.bo.buftype == 'terminal' and vim.fn.mode() ~= 't' then
+          vim.cmd('startinsert')
+        end
+      end)
+    end
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -412,7 +476,9 @@ require('lazy').setup({
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+      vim.keymap.set('n', '<leader>sf', function()
+        builtin.find_files({ hidden = true, no_ignore = true })
+      end, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
