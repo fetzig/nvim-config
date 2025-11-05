@@ -1091,7 +1091,13 @@ require('lazy').setup({
       'nvim-tree/nvim-web-devicons',
     },
     config = function()
-      require('nvim-tree').setup {}
+      require('nvim-tree').setup {
+        filters = {
+          dotfiles = false,      -- Show dotfiles (like .claude)
+          git_ignored = false,   -- Show git-ignored files
+          custom = { '^.DS_Store$' },  -- Hide only .DS_Store files
+        },
+      }
     end,
   },
   {
