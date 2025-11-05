@@ -973,22 +973,6 @@ require('lazy').setup({
       },
     },
     init = function()
-      -- Detect macOS system appearance and set initial theme
-      -- The auto-dark-mode plugin will take over after it loads
-      local handle = io.popen('defaults read -g AppleInterfaceStyle 2>/dev/null')
-      if handle then
-        local result = handle:read('*a')
-        handle:close()
-        if result:match('Dark') then
-          vim.cmd.colorscheme 'catppuccin-mocha'
-        else
-          vim.cmd.colorscheme 'catppuccin-latte'
-        end
-      else
-        -- Default to dark if can't detect
-        vim.cmd.colorscheme 'catppuccin-mocha'
-      end
-
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
