@@ -179,17 +179,22 @@ nvim filename.py              # Open specific file
 | `<leader>ad` | Deny diff changes |
 | `<leader>as` | Send visual selection to Claude (visual mode) |
 
-### Git (Leader: `g`) - Gitsigns
+### Git (Leader: `h`) - Gitsigns
 | Key | Action |
 |-----|--------|
-| `<leader>gh` | Preview hunk |
-| `<leader>gs` | Stage hunk |
-| `<leader>gr` | Reset hunk |
-| `<leader>gS` | Stage buffer |
-| `<leader>gR` | Reset buffer |
-| `<leader>gb` | Blame line |
-| `[c` | Previous hunk |
-| `]c` | Next hunk |
+| `<leader>hb` | Git blame line (show popup) |
+| `<leader>tb` | Toggle inline git blame display |
+| `<leader>hp` | Preview hunk |
+| `<leader>hs` | Stage hunk |
+| `<leader>hr` | Reset hunk |
+| `<leader>hS` | Stage buffer |
+| `<leader>hu` | Undo stage hunk |
+| `<leader>hR` | Reset buffer |
+| `<leader>hd` | Git diff against index |
+| `<leader>hD` | Git diff against last commit |
+| `<leader>tD` | Toggle show deleted lines |
+| `[c` | Previous git change |
+| `]c` | Next git change |
 
 ---
 
