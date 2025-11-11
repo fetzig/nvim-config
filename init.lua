@@ -394,7 +394,7 @@ require('lazy').setup({
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.x',
+    branch = 'master',
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -441,11 +441,28 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          -- Configure ripgrep to search hidden files (like .env)
+          vimgrep_arguments = {
+            'rg',
+            '--color=never',
+            '--no-heading',
+            '--with-filename',
+            '--line-number',
+            '--column',
+            '--smart-case',
+            '--hidden',        -- Search hidden files (dotfiles like .env)
+            '-g', '!.git/',    -- But exclude .git directory
+          },
+          -- Exclude common noise directories/files from all searches
+          file_ignore_patterns = {
+            '^.git/',
+            'node_modules/',
+            '__pycache__/',
+            '%.pyc$',
+            '.DS_Store',
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
