@@ -534,8 +534,8 @@ require('lazy').setup({
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
+      -- Mason with safe configuration
+      'williamboman/mason.nvim',
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -730,7 +730,7 @@ require('lazy').setup({
         },
 
         -- Ruff LSP for Python linting (works alongside Pyright)
-        ruff = {
+        ruff_lsp = {
           init_options = {
             settings = {
               -- Disable hover in favor of Pyright
@@ -765,42 +765,66 @@ require('lazy').setup({
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
-      require('mason').setup()
+      -- Setup Mason with proper error handling
+      local mason_ok, mason = pcall(require, 'mason')
+      if mason_ok then
+        mason.setup({
+          ui = {
+            check_outdated_packages_on_open = false,
+            border = 'rounded',
+          },
+          install_root_dir = vim.fn.stdpath('data') .. '/mason',
+          PATH = 'append',
+          max_concurrent_installers = 1,
+        })
+        
+        -- Patch mason-registry refresh callback to handle nil updated_registries
+        vim.defer_fn(function()
+          local registry_ok, registry = pcall(require, 'mason-registry')
+          if registry_ok then
+            local original_refresh = registry.refresh
+            registry.refresh = function(callback)
+              if callback then
+                local wrapped_callback = function(success, updated_registries)
+                  -- Ensure updated_registries is never nil
+                  updated_registries = updated_registries or {}
+                  callback(success, updated_registries)
+                end
+                return original_refresh(wrapped_callback)
+              else
+                return original_refresh()
+              end
+            end
+          end
+        end, 0)
+      end
 
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        -- Formatters
-        'stylua', -- Lua
-        'prettier', -- YAML, JSON, etc.
+      -- Setup mason-lspconfig after a short delay
+      vim.defer_fn(function()
+        local mason_lspconfig_ok, mason_lspconfig = pcall(require, 'mason-lspconfig')
+        if mason_lspconfig_ok then
+          local ok, err = pcall(mason_lspconfig.setup, {
+            automatic_installation = false,
+            ensure_installed = {}, -- Explicitly set to empty to avoid auto-install issues
+            handlers = {
+              function(server_name)
+                local server = servers[server_name] or {}
+                server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+                require('lspconfig')[server_name].setup(server)
+              end,
+            },
+          })
+          if not ok then
+            vim.notify('Mason LSP config error: ' .. tostring(err), vim.log.levels.WARN)
+          end
+        end
+      end, 100)
 
-        -- Linters
-        'ruff', -- Python linting (also installed as LSP above)
-        'yamllint', -- YAML
-        'jsonlint', -- JSON
-        'tflint', -- Terraform
-      })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
+      -- Setup LSP servers directly regardless of Mason status
+      for server_name, server_config in pairs(servers) do
+        server_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server_config.capabilities or {})
+        require('lspconfig')[server_name].setup(server_config)
+      end
     end,
   },
 
@@ -838,7 +862,14 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        python = { 'ruff_format', 'ruff_organize_imports' },
+        python = function()
+          -- Use ruff for Python formatting if available
+          if vim.fn.executable('ruff') == 1 then
+            return { 'ruff_format', 'ruff_organize_imports' }
+          else
+            return {}
+          end
+        end,
         terraform = { 'terraform_fmt' },
         tf = { 'terraform_fmt' },
         yaml = { 'prettier' },
@@ -977,6 +1008,11 @@ require('lazy').setup({
       },
     },
     init = function()
+      -- Load the colorscheme here.
+      -- On Linux, default to dark mode. On macOS, auto-dark-mode plugin will handle it
+      if vim.fn.has('mac') == 0 then
+        vim.cmd.colorscheme 'catppuccin-mocha'
+      end
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,

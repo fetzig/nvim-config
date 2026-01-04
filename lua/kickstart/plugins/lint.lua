@@ -6,12 +6,14 @@ return {
     config = function()
       local lint = require 'lint'
       lint.linters_by_ft = {
-        markdown = { 'markdownlint' },
-        python = { 'ruff' },
-        yaml = { 'yamllint' },
-        json = { 'jsonlint' },
-        terraform = { 'tflint' },
-        tf = { 'tflint' },
+        -- Only enable linters that are actually installed
+        python = { 'ruff' }, -- ruff is installed via NixOS
+        -- Commented out linters that aren't installed:
+        -- markdown = { 'markdownlint' },
+        -- yaml = { 'yamllint' },
+        -- json = { 'jsonlint' },
+        -- terraform = { 'tflint' },
+        -- tf = { 'tflint' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
@@ -52,7 +54,12 @@ return {
       vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
         group = lint_augroup,
         callback = function()
-          lint.try_lint()
+          -- Use pcall to prevent errors from missing linters
+          local ok, err = pcall(lint.try_lint)
+          if not ok and err and not err:match('ENOENT') then
+            -- Only show error if it's not a "file not found" error
+            vim.notify('Lint error: ' .. tostring(err), vim.log.levels.WARN)
+          end
         end,
       })
     end,
