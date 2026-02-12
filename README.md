@@ -1,6 +1,6 @@
 # nvim-config
 
-Personal Neovim configuration for Python/FastAPI-oriented development with LSP, testing, debugging, tasks, and terminal tooling.
+Personal Neovim configuration with LSP, testing, debugging, tasks, and terminal tooling.
 
 This setup started from `kickstart.nvim` and is now tailored for daily project work.
 
