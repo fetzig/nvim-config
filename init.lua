@@ -190,6 +190,8 @@ vim.keymap.set('n', '<leader>e', '<cmd> NvimTreeToggle<CR>', { desc = 'Open or c
 -- Buffer management
 vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<cr>', { desc = '[B]uffer [D]elete' })
 vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<cr>', { desc = '[B]uffer [D]elete (force)' })
+vim.keymap.set('n', '<leader>bn', '<cmd>enew<CR>', { desc = '[B]uffer [N]ew' })
+vim.keymap.set('n', '<leader>bv', '<cmd>vnew<CR>', { desc = '[B]uffer [V]ertical new' })
 
 -- TODO get that functionality back...maybe
 -- vim.keymap.set('n', '<leader>rd', '<cmd> PythonCopyReferenceDotted<CR>', { desc = 'python copy reference dotted' })
@@ -368,7 +370,6 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>a', group = '[A]I/Claude Code' },
         { '<leader>b', group = '[B]uffer' },
         { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument' },
@@ -697,7 +698,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
+        ts_ls = {},
         --
 
         lua_ls = {
@@ -1158,47 +1159,6 @@ require('lazy').setup({
     'numToStr/Comment.nvim',
     opts = {
       -- add any options here
-    },
-  },
-  -- snacks.nvim - Terminal management for Claude Code
-  {
-    'folke/snacks.nvim',
-    priority = 1000,
-    lazy = false,
-    opts = {
-      terminal = {},
-    },
-  },
-  -- Claude Code integration
-  {
-    'coder/claudecode.nvim',
-    dependencies = { 'folke/snacks.nvim' },
-    opts = {
-      -- Server Configuration
-      auto_start = true,
-      log_level = 'info',
-
-      -- Terminal Configuration
-      terminal = {
-        split_side = 'right',
-        split_width_percentage = 0.30,
-        provider = 'auto',
-        auto_close = true,
-      },
-
-      -- Selection Tracking
-      track_selection = true,
-      visual_demotion_delay_ms = 50,
-    },
-    keys = {
-      { '<leader>a', nil, desc = 'AI/Claude Code' },
-      { '<leader>ac', '<cmd>ClaudeCode --dangerously-skip-permissions<cr>', desc = 'Toggle Claude' },
-      { '<leader>af', '<cmd>ClaudeCodeFocus<cr>', desc = 'Focus Claude' },
-      { '<leader>ar', '<cmd>ClaudeCode --dangerously-skip-permissions --resume<cr>', desc = 'Resume Claude' },
-      { '<leader>aC', '<cmd>ClaudeCode --dangerously-skip-permissions --continue<cr>', desc = 'Continue Claude' },
-      { '<leader>aa', '<cmd>ClaudeCodeDiffAccept<cr>', desc = 'Accept diff' },
-      { '<leader>ad', '<cmd>ClaudeCodeDiffDeny<cr>', desc = 'Deny diff' },
-      { '<leader>as', '<cmd>ClaudeCodeSend<cr>', mode = 'v', desc = 'Send to Claude' },
     },
   },
 }, {
