@@ -56,7 +56,7 @@ return {
         callback = function()
           -- Use pcall to prevent errors from missing linters
           local ok, err = pcall(lint.try_lint)
-          if not ok and err and not err:match('ENOENT') then
+          if not ok and err and not err:match 'ENOENT' then
             -- Only show error if it's not a "file not found" error
             vim.notify('Lint error: ' .. tostring(err), vim.log.levels.WARN)
           end

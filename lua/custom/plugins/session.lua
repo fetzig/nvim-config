@@ -12,9 +12,9 @@ return {
     },
     config = function()
       -- Set sessionoptions before auto-session setup to avoid warnings
-      vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+      vim.o.sessionoptions = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
 
-      require('auto-session').setup({
+      require('auto-session').setup {
         -- Automatically save session on exit
         auto_save = true,
 
@@ -60,7 +60,7 @@ return {
 
         -- Log level (only show warnings and errors)
         log_level = 'warn',
-      })
+      }
     end,
     keys = {
       {
@@ -88,28 +88,28 @@ return {
       -- Create a user command to set up the ideal project layout
       vim.api.nvim_create_user_command('ProjectSetup', function()
         -- Close all buffers except current
-        vim.cmd('silent! %bdelete')
+        vim.cmd 'silent! %bdelete'
 
         -- Ensure a buffer is open
-        vim.cmd('enew')
+        vim.cmd 'enew'
 
         -- Open nvim-tree on the left
-        vim.cmd('NvimTreeOpen')
+        vim.cmd 'NvimTreeOpen'
 
         -- Focus on the main editing area (move away from nvim-tree)
-        vim.cmd('wincmd l')
+        vim.cmd 'wincmd l'
 
         -- Create one vertical split to get 2 editor windows side-by-side
-        vim.cmd('vsplit')
+        vim.cmd 'vsplit'
 
         -- Distribute windows evenly
-        vim.cmd('wincmd =')
+        vim.cmd 'wincmd ='
 
         -- Move to the leftmost editor window
-        vim.cmd('wincmd h')
+        vim.cmd 'wincmd h'
 
-        print('Project layout configured! Layout: NvimTree | Buffer 1 | Buffer 2')
-        print('Use <F12> to open a floating terminal.')
+        print 'Project layout configured! Layout: NvimTree | Buffer 1 | Buffer 2'
+        print 'Use <F12> to open a floating terminal.'
       end, {
         desc = 'Set up ideal project layout (NvimTree + 2 editor splits)',
       })

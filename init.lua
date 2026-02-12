@@ -223,15 +223,19 @@ vim.api.nvim_create_autocmd({ 'InsertLeave', 'WinLeave', 'FocusLost', 'BufLeave'
 
     -- Check if we should skip this buffer
     for _, bt in ipairs(skip_buftypes) do
-      if buftype == bt then return end
+      if buftype == bt then
+        return
+      end
     end
     for _, ft in ipairs(skip_filetypes) do
-      if filetype == ft then return end
+      if filetype == ft then
+        return
+      end
     end
 
     -- Save if buffer is modifiable, modified, and has a filename
-    if vim.bo.modifiable and vim.bo.modified and vim.fn.expand('%') ~= '' then
-      vim.cmd('silent! write')
+    if vim.bo.modifiable and vim.bo.modified and vim.fn.expand '%' ~= '' then
+      vim.cmd 'silent! write'
     end
   end,
 })
@@ -254,7 +258,7 @@ vim.api.nvim_create_autocmd({ 'TermOpen', 'BufEnter', 'WinEnter', 'BufWinEnter' 
 
       -- Use vim.schedule to ensure this runs after all other event handlers
       vim.schedule(function()
-        vim.cmd('startinsert')
+        vim.cmd 'startinsert'
       end)
     end
   end,
@@ -453,8 +457,9 @@ require('lazy').setup({
             '--line-number',
             '--column',
             '--smart-case',
-            '--hidden',        -- Search hidden files (dotfiles like .env)
-            '-g', '!.git/',    -- But exclude .git directory
+            '--hidden', -- Search hidden files (dotfiles like .env)
+            '-g',
+            '!.git/', -- But exclude .git directory
           },
           -- Exclude common noise directories/files from all searches
           file_ignore_patterns = {
@@ -482,7 +487,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', function()
-        builtin.find_files({ hidden = true, no_ignore = true })
+        builtin.find_files { hidden = true, no_ignore = true }
       end, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
@@ -769,16 +774,16 @@ require('lazy').setup({
       -- Setup Mason with proper error handling
       local mason_ok, mason = pcall(require, 'mason')
       if mason_ok then
-        mason.setup({
+        mason.setup {
           ui = {
             check_outdated_packages_on_open = false,
             border = 'rounded',
           },
-          install_root_dir = vim.fn.stdpath('data') .. '/mason',
+          install_root_dir = vim.fn.stdpath 'data' .. '/mason',
           PATH = 'append',
           max_concurrent_installers = 1,
-        })
-        
+        }
+
         -- Patch mason-registry refresh callback to handle nil updated_registries
         vim.defer_fn(function()
           local registry_ok, registry = pcall(require, 'mason-registry')
@@ -865,7 +870,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         python = function()
           -- Use ruff for Python formatting if available
-          if vim.fn.executable('ruff') == 1 then
+          if vim.fn.executable 'ruff' == 1 then
             return { 'ruff_format', 'ruff_organize_imports' }
           else
             return {}
@@ -1011,7 +1016,7 @@ require('lazy').setup({
     init = function()
       -- Load the colorscheme here.
       -- On Linux, default to dark mode. On macOS, auto-dark-mode plugin will handle it
-      if vim.fn.has('mac') == 0 then
+      if vim.fn.has 'mac' == 0 then
         vim.cmd.colorscheme 'catppuccin-mocha'
       end
       -- You can configure highlights by doing something like:
@@ -1148,9 +1153,9 @@ require('lazy').setup({
     config = function()
       require('nvim-tree').setup {
         filters = {
-          dotfiles = false,      -- Show dotfiles
-          git_ignored = false,   -- Show git-ignored files
-          custom = { '^.DS_Store$' },  -- Hide only .DS_Store files
+          dotfiles = false, -- Show dotfiles
+          git_ignored = false, -- Show git-ignored files
+          custom = { '^.DS_Store$' }, -- Hide only .DS_Store files
         },
       }
     end,
