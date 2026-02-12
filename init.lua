@@ -735,8 +735,8 @@ require('lazy').setup({
           },
         },
 
-        -- Ruff LSP for Python linting (works alongside Pyright)
-        ruff_lsp = {
+        -- Ruff language server for Python linting/formatting (works alongside Pyright)
+        ruff = {
           init_options = {
             settings = {
               -- Disable hover in favor of Pyright
@@ -812,13 +812,6 @@ require('lazy').setup({
           local ok, err = pcall(mason_lspconfig.setup, {
             automatic_installation = false,
             ensure_installed = {}, -- Explicitly set to empty to avoid auto-install issues
-            handlers = {
-              function(server_name)
-                local server = servers[server_name] or {}
-                server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-                require('lspconfig')[server_name].setup(server)
-              end,
-            },
           })
           if not ok then
             vim.notify('Mason LSP config error: ' .. tostring(err), vim.log.levels.WARN)
@@ -826,10 +819,11 @@ require('lazy').setup({
         end
       end, 100)
 
-      -- Setup LSP servers directly regardless of Mason status
+      -- Setup LSP servers once via Neovim 0.11+ API
       for server_name, server_config in pairs(servers) do
         server_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server_config.capabilities or {})
-        require('lspconfig')[server_name].setup(server_config)
+        vim.lsp.config(server_name, server_config)
+        vim.lsp.enable(server_name)
       end
     end,
   },
