@@ -237,7 +237,7 @@ vim.api.nvim_create_autocmd({ 'InsertLeave', 'WinLeave', 'FocusLost', 'BufLeave'
 })
 
 -- Automatically enter terminal mode when entering terminal buffers
--- This keeps terminal buffers (like Claude Code) in terminal mode
+-- This keeps terminal buffers interactive by default
 -- Uses mouse mapping instead of ModeChanged to allow scrolling
 vim.api.nvim_create_autocmd({ 'TermOpen', 'BufEnter', 'WinEnter', 'BufWinEnter' }, {
   desc = 'Auto-enter terminal mode for terminal buffers',
@@ -1131,7 +1131,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<C-j>', '<cmd>TmuxNavigateDown<CR>', { desc = 'window down', silent = true })
       vim.keymap.set('n', '<C-k>', '<cmd>TmuxNavigateUp<CR>', { desc = 'window up', silent = true })
 
-      -- Terminal mode mappings (critical for Claude Code terminal)
+      -- Terminal mode mappings for seamless navigation while in terminal buffers
       vim.keymap.set('t', '<C-h>', '<cmd>TmuxNavigateLeft<CR>', { desc = 'window left', silent = true })
       vim.keymap.set('t', '<C-l>', '<cmd>TmuxNavigateRight<CR>', { desc = 'window right', silent = true })
       vim.keymap.set('t', '<C-j>', '<cmd>TmuxNavigateDown<CR>', { desc = 'window down', silent = true })
@@ -1148,7 +1148,7 @@ require('lazy').setup({
     config = function()
       require('nvim-tree').setup {
         filters = {
-          dotfiles = false,      -- Show dotfiles (like .claude)
+          dotfiles = false,      -- Show dotfiles
           git_ignored = false,   -- Show git-ignored files
           custom = { '^.DS_Store$' },  -- Hide only .DS_Store files
         },

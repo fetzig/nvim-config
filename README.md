@@ -66,12 +66,12 @@ too - it's ignored in the kickstart repo to make maintenance easier, but it's
 #### Clone kickstart.nvim
 > **NOTE**
 > If following the recommended step above (i.e., forking the repo), replace
-> `nvim-lua` with `<your_github_username>` in the commands below
+> `<your_github_username>` in the commands below with your actual GitHub username
 
 <details><summary> Linux and Mac </summary>
 
 ```sh
-git clone git@github.com:fetzig/nvim-config.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
+git clone git@github.com:<your_github_username>/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
 ```
 
 </details>
@@ -81,13 +81,13 @@ git clone git@github.com:fetzig/nvim-config.git "${XDG_CONFIG_HOME:-$HOME/.confi
 If you're using `cmd.exe`:
 
 ```
-git clone git@github.com:fetzig/nvim-config.git "%localappdata%\nvim"
+git clone git@github.com:<your_github_username>/kickstart.nvim.git "%localappdata%\nvim"
 ```
 
 If you're using `powershell.exe`
 
 ```
-git clone git@github.com:fetzig/nvim-config.git "${env:LOCALAPPDATA}\nvim"
+git clone git@github.com:<your_github_username>/kickstart.nvim.git "${env:LOCALAPPDATA}\nvim"
 ```
 
 </details>
@@ -242,7 +242,6 @@ Complete guide to your Neovim environment configured for Python/FastAPI developm
 - [Neovim Basics](#neovim-basics)
 - [Complete Keybinding Reference](#complete-keybinding-reference)
 - [Common Workflows](#common-workflows)
-- [Claude Code Integration](#claude-code-integration)
 - [Troubleshooting](#troubleshooting)
 - [Configuration](#configuration)
 
@@ -326,7 +325,7 @@ nvim filename.py              # Open specific file
 ### File & Search (Leader: `s`)
 | Key | Action |
 |-----|--------|
-| `<leader>e` | Toggle file tree (neo-tree) |
+| `<leader>e` | Toggle file tree (nvim-tree) |
 | `<leader>sf` | Find files (telescope) |
 | `<leader>sg` | Search by grep |
 | `<leader>sw` | Search word under cursor |
@@ -411,17 +410,6 @@ nvim filename.py              # Open specific file
 | `<leader>Tf` | Open floating terminal |
 | `Esc Esc` | Exit terminal mode → normal mode |
 
-### Claude Code (Leader: `a`)
-| Key | Action |
-|-----|--------|
-| `<leader>ac` | Toggle Claude Code terminal (right split, 30% width) |
-| `<leader>af` | Focus Claude terminal |
-| `<leader>ar` | Resume previous Claude session |
-| `<leader>aC` | Continue with context |
-| `<leader>aa` | Accept diff changes |
-| `<leader>ad` | Deny diff changes |
-| `<leader>as` | Send visual selection to Claude (visual mode) |
-
 ### Git (Leader: `h`) - Gitsigns
 | Key | Action |
 |-----|--------|
@@ -453,7 +441,6 @@ nvim
 # Inside nvim:
 <leader>e          # Open file tree
 <leader>sf         # Or find files
-<leader>ac         # Open Claude Code (optional)
 ```
 
 ### 2. Running & Debugging Tests
@@ -493,28 +480,7 @@ nvim
 **Method 2: Debug tests**
 - Just use `<leader>td` on any test
 
-### 4. Working with Claude Code
-
-**Opening Claude:**
-1. In nvim: `<leader>ac`
-2. Claude opens in right split (30% width)
-3. Navigate: `Ctrl+h` (back to code), `Ctrl+l` (to Claude)
-
-**Sending code to Claude:**
-1. Visual select code: `V` (line mode), then `j`/`k` to select
-2. Send: `<leader>as`
-3. Claude receives selection with file context
-
-**Accepting Claude's changes:**
-1. Claude shows diff in editor
-2. Review changes
-3. Accept: `<leader>aa` or Deny: `<leader>ad`
-
-**Terminal mode:**
-- When in Claude terminal: `Esc Esc` to exit to normal mode
-- Return to terminal mode: just click or `i`
-
-### 5. Code Navigation & Refactoring
+### 4. Code Navigation & Refactoring
 
 **Understanding code:**
 ```
@@ -538,7 +504,7 @@ gr                 # Find all references
 [d                 # Previous error
 ```
 
-### 6. Running Project Tasks
+### 5. Running Project Tasks
 
 **Using task runner:**
 ```
@@ -563,24 +529,20 @@ just dev           # Run command directly
 Esc Esc            # Exit terminal
 ```
 
-### 7. Git Workflow with GitHub CLI
+### 6. Git Workflow with GitHub CLI
 
 ```bash
 F12                        # Open terminal
-source ~/.bashrc           # Load jira token
 
 # GitHub operations
 gh pr list
 gh pr view 123
 gh pr create
 
-# Jira operations
-jira-cli issue WKW-1234
-
 Esc Esc                    # Exit terminal
 ```
 
-### 8. Find & Replace Across Files
+### 7. Find & Replace Across Files
 
 **Using Spectre (Visual UI with preview):**
 
@@ -627,7 +589,7 @@ Tab / Shift+Tab   Navigate between fields (search/replace/path)
 2. `<C-q>` - Send results to quickfix
 3. `:cdo s/old/new/g | update` - Replace in all files
 
-### 9. Multiple Files & Splits
+### 8. Multiple Files & Splits
 
 ```
 :vsplit filename.py        # Vertical split
@@ -635,52 +597,6 @@ Tab / Shift+Tab   Navigate between fields (search/replace/path)
 Ctrl+h/j/k/l              # Navigate splits
 <leader><leader>           # Switch buffers
 <leader>sf                # Find & open file
-```
-
----
-
-## Claude Code Integration
-
-### Setup
-Claude Code is integrated via a terminal split that runs the `claude` CLI.
-
-### Opening Claude
-**Method 1 - Keybinding**: `<leader>ac`
-**Method 2 - Command**: `:ClaudeCode`
-
-Opens in a right-side split (30% width).
-
-### Working with Claude
-
-**Sending code:**
-1. Select code in visual mode: `V` then move with `j/k`
-2. Send: `<leader>as`
-3. Claude receives file context + selection
-
-**Reviewing diffs:**
-- Claude creates diffs in your editor
-- Accept: `<leader>aa`
-- Deny: `<leader>ad`
-
-**Navigation:**
-- To editor: `Ctrl+h`
-- To Claude: `Ctrl+l`
-- Focus Claude: `<leader>af`
-
-**Terminal control:**
-- Exit terminal mode: `Esc Esc`
-- Close Claude: `<leader>ac` (toggles)
-
-### Example Session
-```
-1. Open file: <leader>sf → myfile.py
-2. Toggle Claude: <leader>ac
-3. Ask Claude to help (type in terminal)
-4. Select function: V + movement keys
-5. Send to Claude: <leader>as
-6. Review Claude's diff
-7. Accept: <leader>aa
-8. Navigate back: Ctrl+h
 ```
 
 ---
@@ -767,29 +683,11 @@ lsof -i :5678         # Check if port is in use
 - Wait 2-3 minutes for Mason to install tools
 - Check `:Mason` for installation status
 
-### Claude Code terminal issues
-
-**Not responding:**
-```vim
-:ClaudeCode           " Toggle off/on
-```
-
-**Check if it works in shell:**
-```bash
-F12                   # Open terminal
-claude --help         # Test CLI
-Esc Esc              # Exit
-```
-
-**Terminal mode stuck:**
-- `Esc Esc` - Exit terminal mode
-- `i` - Re-enter terminal mode
-
 ### File tree not showing
 
 ```vim
-<leader>e             " Toggle neo-tree
-:Neotree reveal       " Open and reveal current file
+<leader>e             " Toggle nvim-tree
+:NvimTreeFindFile     " Open tree and reveal current file
 ```
 
 ### Finding keybindings
@@ -816,7 +714,6 @@ Esc Esc              # Exit
 - ✅ Terminal: Toggleterm for quick access
 - ✅ Diagnostics: Trouble.nvim for error display
 - ✅ Find & Replace: nvim-spectre with live preview
-- ✅ Claude Code: Integrated terminal
 
 ### File Structure
 
@@ -828,7 +725,7 @@ Esc Esc              # Exit
     │   ├── debug.lua             # nvim-dap (debugging)
     │   ├── lint.lua              # nvim-lint
     │   ├── gitsigns.lua          # Git integration
-    │   ├── neo-tree.lua          # File tree
+    │   ├── neo-tree.lua          # Optional kickstart example
     │   ├── indent_line.lua       # Indent guides
     │   └── autopairs.lua         # Auto pairs
     └── custom/plugins/
@@ -949,7 +846,6 @@ F12                   # Terminal - for custom commands
 gd              Go to definition
 K               Hover docs
 F12             Terminal
-<leader>ac      Claude Code
 ```
 
 ### Modes
@@ -1003,5 +899,4 @@ F2              Step over
 
 **Enjoy coding in Neovim!** 🚀
 
-For project-specific setup, see `CLAUDE.md` in your project root.
-For personal preferences, see `~/.claude/CLAUDE.md`.
+Adapt this guide to your own project conventions and local tooling.

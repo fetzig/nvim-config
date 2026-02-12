@@ -13,7 +13,7 @@ return {
         direction = 'horizontal',
         open_on_start = true,
       },
-      templates = { 'builtin', 'user.just_tasks' },
+      templates = { 'builtin' },
       dap = false,
       task_list = {
         bindings = {

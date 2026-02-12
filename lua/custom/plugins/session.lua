@@ -109,7 +109,7 @@ return {
         vim.cmd('wincmd h')
 
         print('Project layout configured! Layout: NvimTree | Buffer 1 | Buffer 2')
-        print('Use <leader>ac to open Claude Code on the right.')
+        print('Use <F12> to open a floating terminal.')
       end, {
         desc = 'Set up ideal project layout (NvimTree + 2 editor splits)',
       })
