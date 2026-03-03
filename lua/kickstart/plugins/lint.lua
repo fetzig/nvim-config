@@ -8,6 +8,7 @@ return {
       lint.linters_by_ft = {
         -- Only enable linters that are actually installed
         python = { 'ruff' }, -- ruff is installed via NixOS
+        swift = { 'swiftlint' },
         -- Commented out linters that aren't installed:
         -- markdown = { 'markdownlint' },
         -- yaml = { 'yamllint' },

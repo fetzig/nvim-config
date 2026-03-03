@@ -14,7 +14,7 @@ This setup started from `kickstart.nvim` and is now tailored for daily project w
 ## Quick start
 
 1. Install requirements: `git`, `make`, `unzip`, `gcc`, `ripgrep`, Neovim latest stable.
-2. Clone this repo to your config path:
+2. Fork or otherwise copy this repo to your own repo and check it out:
 
 ```sh
 git clone <your-repo-url> "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
