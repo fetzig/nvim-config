@@ -104,9 +104,6 @@ vim.opt.number = true
 --  Experiment for yourself to see if you like it!
 -- vim.opt.relativenumber = true
 
--- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
-
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
@@ -153,9 +150,6 @@ vim.opt.inccommand = 'split'
 
 -- Show which line your cursor is on
 vim.opt.cursorline = true
-
--- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -240,27 +234,10 @@ vim.api.nvim_create_autocmd({ 'InsertLeave', 'WinLeave', 'FocusLost', 'BufLeave'
   end,
 })
 
--- Automatically enter terminal mode when entering terminal buffers
--- This keeps terminal buffers interactive by default
--- Uses mouse mapping instead of ModeChanged to allow scrolling
-vim.api.nvim_create_autocmd({ 'TermOpen', 'BufEnter', 'WinEnter', 'BufWinEnter' }, {
-  desc = 'Auto-enter terminal mode for terminal buffers',
-  group = vim.api.nvim_create_augroup('auto-insert-terminal', { clear = true }),
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
   callback = function(args)
-    -- Only apply to actual terminal buffers
-    if vim.bo[args.buf].buftype == 'terminal' then
-      -- Enable scrollback for terminal buffers
-      vim.bo[args.buf].scrollback = 10000
-
-      -- Map left mouse button to return to terminal mode after click
-      -- This allows scrolling (doesn't use LeftRelease) while preventing clicks from leaving terminal mode
-      vim.keymap.set('n', '<LeftRelease>', '<LeftRelease>i', { buffer = args.buf, silent = true })
-
-      -- Use vim.schedule to ensure this runs after all other event handlers
-      vim.schedule(function()
-        vim.cmd 'startinsert'
-      end)
-    end
+    vim.treesitter.stop(args.buf)
   end,
 })
 
@@ -1087,10 +1064,11 @@ require('lazy').setup({
       auto_install = true,
       highlight = {
         enable = true,
+        disable = { 'markdown', 'markdown_inline' },
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby', 'swift' },
+        additional_vim_regex_highlighting = { 'ruby', 'swift', 'markdown' },
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
@@ -1163,13 +1141,67 @@ require('lazy').setup({
       'nvim-tree/nvim-web-devicons',
     },
     config = function()
+      local function on_attach(bufnr)
+        local api = require 'nvim-tree.api'
+
+        api.config.mappings.default_on_attach(bufnr)
+
+        local opts = { buffer = bufnr, noremap = true, silent = true, nowait = true }
+        vim.keymap.set('n', '<ScrollWheelLeft>', '<Nop>', opts)
+        vim.keymap.set('n', '<ScrollWheelRight>', '<Nop>', opts)
+        vim.keymap.set('n', '<S-ScrollWheelUp>', '<Nop>', opts)
+        vim.keymap.set('n', '<S-ScrollWheelDown>', '<Nop>', opts)
+      end
+
       require('nvim-tree').setup {
+        on_attach = on_attach,
         filters = {
           dotfiles = false, -- Show dotfiles
           git_ignored = false, -- Show git-ignored files
           custom = { '^.DS_Store$' }, -- Hide only .DS_Store files
         },
       }
+
+      local nvim_tree_disable_horizontal_scroll = vim.api.nvim_create_augroup('nvim-tree-disable-horizontal-scroll', { clear = true })
+
+      vim.api.nvim_create_autocmd('VimEnter', {
+        group = nvim_tree_disable_horizontal_scroll,
+        once = true,
+        callback = function()
+          vim.api.nvim_create_autocmd('WinScrolled', {
+            group = nvim_tree_disable_horizontal_scroll,
+            callback = function()
+              local api = require 'nvim-tree.api'
+              local winid = api.tree.winid()
+
+              if not winid or winid == 0 or not vim.api.nvim_win_is_valid(winid) then
+                return
+              end
+
+              local event = vim.v.event or {}
+              local change = event[winid] or event[tostring(winid)]
+              if not change or ((change.leftcol or 0) == 0 and (change.skipcol or 0) == 0) then
+                return
+              end
+
+              local view = vim.api.nvim_win_call(winid, function()
+                return vim.fn.winsaveview()
+              end)
+
+              if view.leftcol == 0 and (view.skipcol or 0) == 0 then
+                return
+              end
+
+              view.leftcol = 0
+              view.skipcol = 0
+
+              vim.api.nvim_win_call(winid, function()
+                pcall(vim.fn.winrestview, view)
+              end)
+            end,
+          })
+        end,
+      })
     end,
   },
   {
